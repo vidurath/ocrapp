@@ -1,0 +1,170 @@
+import json
+import boto3
+import re
+
+
+def lambda_handler(event, context):
+    filePath= event;
+    # filePath='23339.png'
+    bad_chars = [';', ':', '!', "*", ']', "[" ,'"', "{" , "}" , "'",","]
+    
+    s3BucketName = "hpower-images"
+    documentName = filePath
+    textract = boto3.client('textract')
+    # textract = boto3.client('textract', region_name='us-east-2')
+    
+    # Call Amazon Textract
+    response = textract.detect_document_text(
+        Document={
+            'S3Object': {
+                'Bucket': s3BucketName,
+                'Name': documentName
+            }
+        })
+    
+    result=[]
+    processedResult=""
+    for item in response["Blocks"]:
+        if item["BlockType"] == "WORD":
+            result.append(item["Text"])
+            element = item["Text"] + " "
+            processedResult += element
+        
+    print (processedResult)
+    #print(result)
+    res=[]
+
+    str_ownername = str(re.findall('Name\s:\s*[\w\s]+',processedResult))
+    for i in bad_chars :
+        str_ownername = str_ownername.replace(i, '')    
+    # print(str_ownername)
+    ownername1 = str_ownername.replace('Model',' ')
+    ownername2 = ownername1.replace('Name',' ')
+    ownername = ownername3.replace('  ','')
+    ownername = ownername2.replace('   ','')
+    # print(ownername)
+    if len(ownername) >0 :
+        res.append(ownername)
+    else:
+        res.append('')
+    
+    str_owneraddress = str(re.findall('Address\s:\s*[\w\s]+',processedResult))
+    for i in bad_chars :
+        str_owneraddress = str_owneraddress.replace(i, '')   
+    owneraddress1 = str_owneraddress.replace('Type',' ')
+    owneraddress2 = owneraddress1.replace('Address',' ')
+    owneraddress = owneraddress2.replace('   ','') 
+    if len(owneraddress) >0 :
+        res.append(owneraddress)
+    else:
+        res.append('')    
+    
+    str_identification_number = str(re.findall('number\s:\s*\w+',processedResult))
+    identification_number = str(str_identification_number.split(' ')[2])
+    for i in bad_chars :
+        identification_number = identification_number.replace(i, '')
+    if len(identification_number) >0 :
+        res.append(identification_number)
+    else:
+        res.append('')
+
+    str_rmark = str(re.findall('Mark\s:\s*\w+',processedResult))
+    rmark = str(str_rmark.split(' ')[-1])
+    for i in bad_chars :
+        rmark = rmark.replace(i, '')
+    #print(rmark)
+    if len(rmark) >0 :
+        res.append(rmark)
+    else:
+        res.append('')
+
+    str_rbn = str(re.findall('RBN\s:\s*\w+[/]+\w+',processedResult))
+    rbn = str(str_rbn.split(' ')[-1])  
+    for i in bad_chars :
+        rbn = rbn.replace(i, '')
+    if len(rbn) >0 :
+        res.append(rbn)
+    else:
+        res.append('')
+        
+    str_vmake = str(re.findall('Make\s:\s*\w+',processedResult))
+    vmake = str(str_vmake.split(' ')[-1])
+    for i in bad_chars :
+        vmake = vmake.replace(i, '')
+    if len(vmake) >0 :
+        res.append(vmake)
+    else:
+        res.append('')
+        
+    str_vmodel = str(re.findall('Model\s:\s*\w+',processedResult))
+    vmodel = str(str_vmodel.split(' ')[-1])
+    for i in bad_chars :
+        vmodel = vmodel.replace(i, '')
+    if len(vmodel) >0 :
+        res.append(vmodel)
+    else:
+        res.append('')
+    
+    str_vclass = str(re.findall('Class\s:\s*[\w\s]+',processedResult))
+    for i in bad_chars :
+        str_vclass = str_vclass.replace(i, '')    
+    vclass1 = str_vclass.replace('Address',' ')
+    vclass2 = vclass1.replace('Class',' ')
+    vclass = vclass2.replace('   ','')
+    if len(vclass) >0 :
+        res.append(vclass)
+    else:
+        res.append('')
+        
+    str_vtype = str(re.findall('Type\s:\s*\w+',processedResult))
+    vtype = str(str_vtype.split(' ')[2])
+    for i in bad_chars :
+        vtype = vtype.replace(i, '')
+    if len(vtype) >0 :
+        res.append(vtype)
+    else:
+        res.append('')
+
+    str_vcolour = str(re.findall('Colour\s:\s*\w+',processedResult))
+    vcolour = str(str_vcolour.split(' ')[-1])
+    for i in bad_chars :
+        vcolour = vcolour.replace(i, '')
+    if len(vcolour) >0 :
+        res.append(vcolour)
+    else:
+        res.append('')        
+
+    str_number = str(re.findall('Identification number\s:\s*\w+\s:\s*\w+',processedResult))
+    chassis_number = str(str_number.split(' ')[-1])
+    for i in bad_chars :
+        chassis_number = chassis_number.replace(i, '')    
+    if len(chassis_number) >0 :
+        res.append(chassis_number)
+    else:
+        res.append('')
+
+    str_number = str(re.findall('number\s:\s*\w+',processedResult))
+    vengine_number = str(str_number.split(' ')[-1])
+    for i in bad_chars :
+        vengine_number = vengine_number.replace(i, '')
+    if len(vengine_number) >0 :
+        res.append(vengine_number)
+    else:
+        res.append('')
+
+    str_vengine_capacity = str(re.findall('Engine capacity\s:\s*\w+',processedResult))
+    vengine_capacity = str(str_vengine_capacity.split(' ')[-1])
+    for i in bad_chars :
+        vengine_capacity = vengine_capacity.replace(i, '')
+    if len(vengine_capacity) >0 :
+        res.append(vengine_capacity)
+    else:
+        res.append('')        
+  
+    
+    return {
+        'statusCode': 200,
+        # 'body': JSON.stringify(result)
+        'body': res
+        
+    }
